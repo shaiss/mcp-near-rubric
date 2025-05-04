@@ -33,6 +33,23 @@ The server provides the following tools via JSON-RPC:
 
 ## Usage
 
+### Using NEAR Rubric with Natural Language in Cursor
+
+The NEAR Rubric MCP is designed to work seamlessly with Cursor's AI assistants through natural language. Once set up, you can simply ask:
+
+```
+run a near audit on [xyz] local repo
+```
+
+The AI assistant will:
+1. Understand your natural language request
+2. Identify the relevant NEAR evaluation categories
+3. Find and analyze the appropriate files in your codebase
+4. Generate a comprehensive evaluation based on the NEAR rubric
+5. Present you with scores, justifications, and recommendations
+
+This natural language interface makes auditing NEAR projects quick and intuitive, without needing to understand the underlying JSON-RPC protocol.
+
 ### Running the Server
 
 ```bash
@@ -45,9 +62,9 @@ python server.py
 python test_client.py
 ```
 
-### Client Integration
+## Advanced Usage: Direct JSON-RPC Integration
 
-The server uses a simple JSON-RPC protocol. Example request:
+For developers integrating the NEAR Rubric MCP outside of Cursor or similar AI environments, the server uses a simple JSON-RPC protocol. Example request:
 
 ```json
 {
@@ -94,48 +111,36 @@ This project is part of the NEAR ecosystem tooling.
 
 3. **(Optional) Clone the NEAR Project to Audit**
    ```bash
-   git clone https://github.com/HaidarJbeily7/YieldGuard.git
+   git clone https://github.com/your-project/near-project.git
    ```
 
-### Running the MCP Server
+### Auditing with Natural Language
 
-From the `near-rubric-mcp` directory, start the server:
-```bash
-python server.py
-```
+Once the MCP server is running, you can use natural language in Cursor to evaluate NEAR projects:
 
-### Auditing a NEAR Project in Cursor
+1. **Start the MCP server**:
+   ```bash
+   python server.py
+   ```
 
-1. **Open Cursor IDE** and ensure both the MCP server and your target NEAR project are in your workspace.
-2. **Start the MCP server** in the integrated terminal as shown above.
-3. **Run an Audit**:
-   - You can use the provided `test_client.py` or send JSON-RPC requests directly (see below).
-   - Example: To get file suggestions for the "near_integration" category:
-     ```json
-     {
-       "jsonrpc": "2.0",
-       "method": "call_tool",
-       "params": {
-         "name": "get_file_suggestions",
-         "arguments": {
-           "category": "near_integration",
-           "available_files": ["YieldGuard/src/lib.rs", "YieldGuard/README.md"]
-         }
-       },
-       "id": 1
-     }
-     ```
-   - Use the other tools (`get_evaluation_framework`, `analyze_code_context`, etc.) as needed.
+2. **Use Natural Language**:
+   In Cursor's AI chat, simply ask:
+   ```
+   Analyze this NEAR project according to the rubric
+   ```
+   or
+   ```
+   Evaluate the NEAR integration quality of this codebase
+   ```
+   or
+   ```
+   Check the onchain quality of this NEAR project
+   ```
 
-4. **View Results**: The server will return structured results with scores and justifications for each rubric category.
+3. **Review Results**:
+   The AI assistant will analyze the codebase and provide detailed evaluation results based on the NEAR rubric categories.
 
-### Example Workflow
-
-1. Clone both the MCP server and your NEAR project into your workspace.
-2. Install dependencies.
-3. Start the MCP server.
-4. Use the provided tools to audit your project.
-5. Review the output in the Cursor terminal or via the integrated chat if available.
+No need to manually construct JSON-RPC requests or understand the underlying API - the natural language interface handles all the complexity for you.
 
 ## Registering the MCP Server with Cursor
 
@@ -166,4 +171,8 @@ To use the NEAR Rubric MCP server natively in Cursor, register it in your `.curs
 4. **Restart Cursor** (if needed) so it picks up the new server.
 5. **Use Cursor's UI or chat** to invoke the NEAR Rubric MCP tools directly on your codebase.
 
-> **Tip:** This is the preferred way to use MCP servers in Cursor, as it enables seamless integration and tool discovery. 
+> **Tip:** This is the preferred way to use MCP servers in Cursor, as it enables seamless integration and tool discovery.
+
+## Documentation
+
+- [NEAR Rubric: Category Breakdown](docs/near_rubric.md): Friendly, human-readable overview of the rubric categories and scoring guidelines. 
