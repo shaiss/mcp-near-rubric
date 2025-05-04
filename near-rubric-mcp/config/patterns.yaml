@@ -1,0 +1,161 @@
+patterns:
+  near_integration:
+    rust:
+      - "near-sdk"
+      - "near_sdk"
+      - "#\\[near_bindgen\\]"
+      - "@NearContract"
+      - "Promise"
+      - "AccountId"
+      - "env::predecessor_account_id"
+      - "borsh::"
+      - "serde::"
+    javascript:
+      - "near-api-js"
+      - "near-sdk-js"
+      - "connect\\s*\\("
+      - "WalletConnection"
+      - "keyStores"
+      - "Contract\\s*\\("
+      - "createTransaction"
+      - "signAndSendTransaction"
+    common:
+      - "near"
+      - "NEAR"
+      - "contract"
+      - "wallet"
+      - "blockchain"
+      
+  onchain_quality:
+    rust:
+      - "pub\\s+fn"
+      - "#\\[payable\\]"
+      - "self\\..*\\s*="
+      - "env::storage_"
+      - "borsh::"
+      - "assert!"
+      - "require!"
+      - "Promise::"
+      - "ext_contract"
+    javascript:
+      - "view\\s*\\("
+      - "change\\s*\\("
+      - "call\\s*\\("
+      - "transaction"
+      - "sendTransaction"
+      - "FunctionCall"
+      - "setState"
+      - "near.call"
+    common:
+      - "storage"
+      - "state"
+      - "transaction"
+      - "contract"
+      
+  offchain_quality:
+    rust:
+      - "tokio::"
+      - "actix"
+      - "axum"
+      - "rocket"
+      - "warp"
+      - "hyper"
+    javascript:
+      - "react"
+      - "React"
+      - "useState"
+      - "useEffect"
+      - "createContext"
+      - "redux"
+      - "useState"
+      - "export\\s+default"
+      - "component"
+      - "fetch\\s*\\("
+      - "axios"
+      - "return\\s*\\("
+    common:
+      - "api"
+      - "interface"
+      - "component"
+      - "function"
+      - "server"
+      - "client"
+      
+  code_quality:
+    rust:
+      - "#\\[test\\]"
+      - "assert_eq!"
+      - "mod\\s+tests"
+      - "pub\\s+struct"
+      - "impl"
+      - "Result<"
+      - "///\\s+"
+      - "//!\\s+"
+      - "fn\\s+.*->\\s+"
+    javascript:
+      - "test\\s*\\("
+      - "describe\\s*\\("
+      - "it\\s*\\("
+      - "expect\\s*\\("
+      - "class\\s+\\w+"
+      - "function\\s+\\w+"
+      - "\\*\\s+@param"
+      - "\\*\\s+@returns"
+      - "eslint"
+      - "prettier"
+    common:
+      - "test"
+      - "README"
+      - "documentation"
+      - "todo:"
+      - "TODO:"
+      - "FIXME:"
+      - "example"
+      
+  technical_innovation:
+    rust:
+      - "unsafe\\s*\\{"
+      - "generics"
+      - "trait\\s+\\w+"
+      - "async\\s+fn"
+      - "macro_rules!"
+      - "custom"
+      - "unique"
+    javascript:
+      - "async\\s+function"
+      - "Promise\\.all"
+      - "new\\s+Proxy"
+      - "Object\\.defineProperty"
+      - "reduce\\s*\\("
+      - "generator"
+      - "middleware"
+    common:
+      - "algorithm"
+      - "custom"
+      - "unique"
+      - "novel"
+      - "architecture"
+      - "optimization"
+      
+  team_activity:
+    common:
+      - "v\\d+\\.\\d+\\.\\d+"
+      - "version"
+      - "changelog"
+      - "TODO"
+      - "update"
+      - "fix"
+      - "implement"
+      - "\\d{4}-\\d{2}-\\d{2}"  # Date pattern
+      - "author"
+      - "contributor"
+      
+  ecosystem_fit:
+    common:
+      - "NEAR\\s+ecosystem"
+      - "NEAR\\s+community"
+      - "NEP-\\d+"
+      - "integration"
+      - "collaborate"
+      - "partner"
+      - "ecosystem" 

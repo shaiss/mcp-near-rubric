@@ -1,0 +1,174 @@
+categories:
+  near_integration:
+    max_points: 20
+    evaluation_type: "hybrid"
+    key_indicators:
+      - "NEAR SDK presence"
+      - "Smart contract implementation"
+      - "Wallet integration"
+      - "NEP standards compliance"
+    file_patterns:
+      - "**/*contract*.rs"
+      - "**/Cargo.toml"
+      - "**/*near*.{js,ts}"
+      - "**/src/lib.rs"
+      - "**/src/main.rs"
+      - "**/near.config.js"
+    scoring_tiers:
+      advanced:
+        range: [16, 20]
+        criteria: "Deep integration with advanced features such as cross-contract calls, promise chaining, advanced wallet integration, and standards compliance."
+      moderate:
+        range: [10, 15]
+        criteria: "Basic integration with standard contract methods, simple wallet connection, and basic NEAR functionality."
+      minimal:
+        range: [0, 9]
+        criteria: "Limited or no NEAR integration, minimal SDK usage, or only superficial connections."
+
+  onchain_quality:
+    max_points: 20
+    evaluation_type: "llm-guided"
+    key_indicators:
+      - "Transaction meaningfulness"
+      - "State management"
+      - "Storage patterns"
+      - "Contract interactions"
+    file_patterns:
+      - "**/*contract*.rs"
+      - "**/*.wasm"
+      - "**/src/lib.rs"
+      - "**/*transaction*.{js,ts}"
+      - "**/*contract*.{js,ts}"
+    scoring_tiers:
+      high:
+        range: [16, 20]
+        criteria: "Real, meaningful interactions with NEAR chain verified through code and live usage."
+      medium:
+        range: [10, 15]
+        criteria: "Occasional useful on-chain transactions."
+      low:
+        range: [0, 9]
+        criteria: "Superficial or junk transactions."
+        
+  offchain_quality:
+    max_points: 15
+    evaluation_type: "hybrid"
+    key_indicators:
+      - "Architecture complexity"
+      - "UI/UX implementation"
+      - "External integrations"
+      - "State management"
+    file_patterns:
+      - "**/src/*.{js,ts,jsx,tsx}"
+      - "**/pages/*.{js,ts,jsx,tsx}"
+      - "**/components/*.{js,ts,jsx,tsx}"
+      - "**/package.json"
+      - "**/webpack.config.js"
+      - "**/tsconfig.json"
+    scoring_tiers:
+      complex:
+        range: [12, 15]
+        criteria: "Dedicated standalone app, complex architecture, robust back-end integrations."
+      moderate:
+        range: [7, 11]
+        criteria: "Browser extension, moderate complexity."
+      simple:
+        range: [0, 6]
+        criteria: "Simple off-chain scripts, minimal complexity."
+        
+  code_quality:
+    max_points: 15
+    evaluation_type: "hybrid"
+    key_indicators:
+      - "Documentation presence"
+      - "Test coverage"
+      - "Code organization"
+      - "Error handling"
+    file_patterns:
+      - "**/tests/**"
+      - "**/README.md"
+      - "**/docs/**"
+      - "**/*.rs"
+      - "**/*.{js,ts,jsx,tsx}"
+    scoring_tiers:
+      high:
+        range: [12, 15]
+        criteria: "Clean, modular, tested code; extensive documentation."
+      medium:
+        range: [7, 11]
+        criteria: "Moderate clarity, some tests/docs."
+      low:
+        range: [0, 6]
+        criteria: "Poorly organized, minimal/no documentation."
+        
+  technical_innovation:
+    max_points: 15
+    evaluation_type: "llm-guided"
+    key_indicators:
+      - "Novel algorithms"
+      - "Unique architecture"
+      - "Advanced techniques"
+      - "Performance optimizations"
+    file_patterns:
+      - "**/*.rs"
+      - "**/*.{js,ts}"
+      - "**/README.md"
+      - "**/architecture.md"
+      - "**/design.md"
+    scoring_tiers:
+      high:
+        range: [12, 15]
+        criteria: "Highly novel solution, advances state-of-the-art."
+      medium:
+        range: [7, 11]
+        criteria: "Some innovative elements, derivative model."
+      low:
+        range: [0, 6]
+        criteria: "Little/no innovation."
+        
+  team_activity:
+    max_points: 10
+    evaluation_type: "pattern-based"
+    key_indicators:
+      - "Commit frequency"
+      - "Code comments with dates"
+      - "Version history"
+      - "Multiple contributors"
+    file_patterns:
+      - "**/README.md"
+      - "**/.git/**"
+      - "**/CHANGELOG.md"
+      - "**/TODO.md"
+    scoring_tiers:
+      high:
+        range: [8, 10]
+        criteria: "Active commits, ongoing development, clear roadmap."
+      medium:
+        range: [4, 7]
+        criteria: "Occasional updates, partial roadmap."
+      low:
+        range: [0, 3]
+        criteria: "Dormant project, unclear future."
+        
+  ecosystem_fit:
+    max_points: 5
+    evaluation_type: "llm-guided"
+    key_indicators:
+      - "NEAR ecosystem references"
+      - "Integration with other NEAR projects"
+      - "NEAR community participation"
+      - "NEAR-specific use cases"
+    file_patterns:
+      - "**/README.md"
+      - "**/documentation/**"
+      - "**/docs/**"
+    scoring_tiers:
+      high:
+        range: [4, 5]
+        criteria: "Strong ecosystem alignment, clear beneficial impact."
+      medium:
+        range: [2, 3]
+        criteria: "Moderate alignment, niche impact."
+      low:
+        range: [0, 1]
+        criteria: "Weak fit, unclear impact." 

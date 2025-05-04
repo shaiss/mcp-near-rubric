@@ -1,0 +1,342 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# MCP Server Development Expert
+
+You are an expert in developing Model Context Protocol (MCP) servers. Follow these guidelines and best practices when building MCP servers.
+
+## Core MCP Concepts
+
+### MCP Protocol Basics
+- MCP is a protocol for AI assistants to interact with external tools and services
+- Servers expose "tools" that clients can discover and invoke
+- Communication happens via JSON-RPC over stdio, SSE, or WebSocket
+- Tools must have clear input/output schemas using JSON Schema
+
+### Server Architecture Principles
+1. **Stateless Design**: Each request should be independent
+2. **Tool-Centric**: Organize code around tools, not features
+3. **Schema-First**: Define tool schemas before implementation
+4. **Error Handling**: Return structured errors, never crash
+5. **Client-Agnostic**: Make no assumptions about the client
+
+## MCP Server Structure
+
+### Essential Components
+```
+mcp-server/
+├── server.py           # Main server setup and tool registration
+├── tools/              # Individual tool implementations
+│   ├── __init__.py
+│   ├── base.py        # Base tool class/interface
+│   └── [tool_name].py # Specific tool implementations
+├── handlers/           # Request/response handlers
+├── schemas/            # JSON schemas for tools
+├── utils/              # Shared utilities
+└── config/             # Configuration files
+```
+
+### Server Implementation Pattern
+```python
+from mcp.server import Server, NotificationOptions
+from mcp.server.models import InitializationOptions
+import mcp.server.stdio
+import mcp.types as types
+
+class MyMCPServer:
+    def __init__(self):
+        self.server = Server("server-name")
+        
+        # Register handlers
+        self.server.list_tools = self.handle_list_tools
+        self.server.call_tool = self.handle_call_tool
+    
+    async def handle_list_tools(self) -> List[types.Tool]:
+        """Return available tools with their schemas"""
+        return [
+            types.Tool(
+                name="tool_name",
+                description="Clear description of what the tool does",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "param1": {"type": "string", "description": "..."},
+                        "param2": {"type": "number", "optional": True}
+                    },
+                    "required": ["param1"]
+                }
+            )
+        ]
+    
+    async def handle_call_tool(
+        self,
+        name: str,
+        arguments: Dict[str, Any]
+    ) -> List[types.TextContent]:
+        """Route tool calls to appropriate handlers"""
+        if name == "tool_name":
+            result = await self.execute_tool(arguments)
+            return [types.TextContent(type="text", text=result)]
+        else:
+            raise ValueError(f"Unknown tool: {name}")
+```
+
+## Best Practices
+
+### Tool Design
+1. **Single Responsibility**: Each tool does one thing well
+2. **Clear Naming**: Use descriptive, action-oriented names
+3. **Comprehensive Schemas**: Include descriptions for all parameters
+4. **Predictable Output**: Return consistent, structured data
+5. **Graceful Degradation**: Handle edge cases without failing
+
+### Schema Definition
+```python
+{
+    "name": "analyze_code",
+    "description": "Analyzes code against specified criteria",
+    "inputSchema": {
+        "type": "object",
+        "properties": {
+            "code": {
+                "type": "string",
+                "description": "The code to analyze"
+            },
+            "language": {
+                "type": "string",
+                "enum": ["python", "javascript", "rust"],
+                "description": "Programming language of the code"
+            },
+            "criteria": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": "Analysis criteria to apply"
+            }
+        },
+        "required": ["code", "criteria"]
+    }
+}
+```
+
+### Error Handling
+```python
+async def handle_call_tool(self, name: str, arguments: Dict[str, Any]):
+    try:
+        # Validate inputs
+        if not self.validate_arguments(name, arguments):
+            return self.error_response("Invalid arguments")
+        
+        # Execute tool
+        result = await self.execute_tool(name, arguments)
+        
+        # Return structured response
+        return [types.TextContent(type="text", text=json.dumps(result))]
+        
+    except ToolExecutionError as e:
+        return self.error_response(f"Tool execution failed: {str(e)}")
+    except Exception as e:
+        logger.error(f"Unexpected error in {name}: {e}")
+        return self.error_response("Internal server error")
+
+def error_response(self, message: str) -> List[types.TextContent]:
+    return [types.TextContent(
+        type="text",
+        text=json.dumps({"error": message, "status": "failed"})
+    )]
+```
+
+## Response Patterns
+
+### Structured Data
+Always return structured data that clients can parse:
+```python
+{
+    "status": "success",
+    "data": {
+        "result": "...",
+        "metadata": {...}
+    },
+    "error": null
+}
+```
+
+### Progress Updates
+For long-running operations, use progress notifications:
+```python
+async def long_operation(self, progress_callback):
+    for i in range(total_steps):
+        await progress_callback(f"Step {i+1}/{total_steps}")
+        # Do work...
+```
+
+### Partial Results
+Return partial results when appropriate:
+```python
+{
+    "status": "partial",
+    "data": {
+        "completed_items": [...],
+        "pending_items": [...],
+        "failed_items": [...]
+    }
+}
+```
+
+## Testing MCP Servers
+
+### Test Structure
+```python
+import pytest
+from mcp.server.models import InitializationOptions
+from your_server import YourMCPServer
+
+@pytest.fixture
+async def server():
+    server = YourMCPServer()
+    await server.initialize(InitializationOptions())
+    return server
+
+async def test_list_tools(server):
+    tools = await server.handle_list_tools()
+    assert len(tools) > 0
+    assert all(hasattr(tool, 'name') for tool in tools)
+
+async def test_tool_execution(server):
+    result = await server.handle_call_tool(
+        "tool_name",
+        {"param1": "value"}
+    )
+    assert result[0].type == "text"
+    data = json.loads(result[0].text)
+    assert data["status"] == "success"
+```
+
+### Integration Testing
+Test with actual MCP clients:
+```python
+async def test_with_client():
+    async with stdio_client() as (read, write):
+        server = YourMCPServer()
+        await server.run(read, write, init_options)
+```
+
+## Common Patterns
+
+### Configuration Management
+```python
+class ConfigurableMCPServer:
+    def __init__(self, config_path: str = "config.yaml"):
+        self.config = self.load_config(config_path)
+        self.server = Server(self.config["server_name"])
+    
+    def load_config(self, path: str) -> Dict:
+        with open(path) as f:
+            return yaml.safe_load(f)
+```
+
+### Tool Registry Pattern
+```python
+class ToolRegistry:
+    def __init__(self):
+        self._tools = {}
+    
+    def register(self, name: str, handler: Callable):
+        self._tools[name] = handler
+    
+    async def execute(self, name: str, arguments: Dict) -> Any:
+        if name not in self._tools:
+            raise ValueError(f"Unknown tool: {name}")
+        return await self._tools[name](arguments)
+```
+
+### Async Context Management
+```python
+async def with_resource(self, resource_id: str):
+    resource = await self.acquire_resource(resource_id)
+    try:
+        yield resource
+    finally:
+        await self.release_resource(resource)
+```
+
+## Debugging MCP Servers
+
+### Logging Best Practices
+```python
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+
+logger = logging.getLogger(__name__)
+
+# Log tool invocations
+logger.info(f"Tool {name} called with args: {arguments}")
+
+# Log errors with context
+logger.error(f"Error in {name}: {e}", exc_info=True)
+```
+
+### Development Mode
+```python
+class DevMCPServer(ProductionMCPServer):
+    def __init__(self, debug: bool = True):
+        super().__init__()
+        self.debug = debug
+    
+    async def handle_call_tool(self, name: str, arguments: Dict):
+        if self.debug:
+            logger.debug(f"Tool call: {name} with {arguments}")
+        
+        result = await super().handle_call_tool(name, arguments)
+        
+        if self.debug:
+            logger.debug(f"Tool result: {result}")
+        
+        return result
+```
+
+## Performance Considerations
+
+1. **Async Everything**: Use async/await for all I/O operations
+2. **Connection Pooling**: Reuse connections to external services
+3. **Lazy Loading**: Initialize resources only when needed
+4. **Streaming Responses**: Use streaming for large data transfers
+5. **Resource Limits**: Implement timeouts and memory limits
+
+## Security Guidelines
+
+1. **Input Validation**: Always validate and sanitize inputs
+2. **Path Traversal**: Prevent directory traversal attacks
+3. **Resource Limits**: Implement rate limiting and quotas
+4. **Secrets Management**: Never hardcode secrets
+5. **Least Privilege**: Request minimal permissions
+
+## MCP Client Compatibility
+
+### Cursor-Specific Considerations
+- Cursor has built-in file access and indexing
+- Leverage Cursor's native LLM integration
+- Return evaluation frameworks, not direct analysis
+- Use file patterns that Cursor can understand
+
+### Generic Client Support
+- Make no assumptions about client capabilities
+- Provide clear tool descriptions and schemas
+- Return self-contained responses
+- Support multiple response formats when possible
+
+## Development Workflow
+
+1. **Define Tools First**: Start with clear tool specifications
+2. **Schema Validation**: Implement schema validation early
+3. **Test-Driven**: Write tests before implementation
+4. **Incremental Features**: Add one tool at a time
+5. **Client Testing**: Test with multiple MCP clients
+
+
+Remember: MCP servers should be focused, reliable, and client-agnostic. They provide specific capabilities through well-defined tools, not complete applications.

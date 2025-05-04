@@ -1,0 +1,338 @@
+---
+description: You are working in a Windows environment with PowerShell as the primary shell. Cursor's agent and auto-run functionality execute commands through PowerShell.
+globs: 
+alwaysApply: false
+---
+# PowerShell Development with Cursor Agent
+
+You are working in a Windows environment with PowerShell as the primary shell. Cursor's agent and auto-run functionality execute commands through PowerShell.
+
+## Environment Constraints
+
+### Available Shell
+- **Primary Shell**: PowerShell (not cmd, bash, or zsh)
+- **Version**: Assume PowerShell 5.1+ or PowerShell Core 7+
+- **Execution Policy**: May need to handle execution policy restrictions
+- **Auto-run Context**: Commands execute in Cursor's integrated terminal
+
+### Command Syntax
+Always use PowerShell syntax, not Unix/bash commands:
+```powershell
+# Correct PowerShell commands
+Get-ChildItem          # NOT: ls
+Set-Location           # NOT: cd
+Get-Content            # NOT: cat
+Remove-Item            # NOT: rm
+Copy-Item              # NOT: cp
+Move-Item              # NOT: mv
+New-Item -ItemType Directory    # NOT: mkdir
+```
+
+## Auto-run Best Practices
+
+### Command Structure
+When using Cursor's auto-run feature, structure commands for PowerShell:
+```powershell
+# Single command
+python -m pip install mcp
+
+# Multiple commands (use semicolon)
+Set-Location ./project; python -m venv venv; ./venv/Scripts/Activate.ps1
+
+# Multi-line scripts (use script blocks)
+& {
+    Set-Location ./project
+    python -m venv venv
+    ./venv/Scripts/Activate.ps1
+    pip install -r requirements.txt
+}
+```
+
+### Path Handling
+PowerShell uses backslashes for paths, but forward slashes also work:
+```powershell
+# Both work in PowerShell
+Set-Location C:\Users\Developer\project
+Set-Location C:/Users/Developer/project
+
+# Use Join-Path for cross-platform compatibility
+$projectPath = Join-Path $env:USERPROFILE "projects" "mcp-server"
+```
+
+### Environment Variables
+Access and set environment variables PowerShell-style:
+```powershell
+# Get environment variable
+$env:PATH
+$env:PYTHONPATH
+
+# Set environment variable (session only)
+$env:PYTHONPATH = "C:\my\python\path"
+
+# Set persistent environment variable
+[Environment]::SetEnvironmentVariable("PYTHONPATH", "C:\my\python\path", "User")
+```
+
+## Python Development in PowerShell
+
+### Virtual Environment Management
+```powershell
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment (note the different path)
+./venv/Scripts/Activate.ps1      # NOT: source venv/bin/activate
+
+# Deactivate
+deactivate
+
+# Check if in virtual environment
+$env:VIRTUAL_ENV
+```
+
+### Package Management
+```powershell
+# Install packages
+python -m pip install mcp
+python -m pip install -r requirements.txt
+
+# Upgrade pip itself
+python -m pip install --upgrade pip
+
+# Install in development mode
+python -m pip install -e .
+```
+
+### Running Python Scripts
+```powershell
+# Run script directly
+python server.py
+
+# Run module
+python -m mcp_server.main
+
+# Run with specific Python version (if multiple installed)
+py -3.11 server.py
+```
+
+## MCP Server Development Workflow
+
+### Project Setup
+```powershell
+# Create project structure
+New-Item -ItemType Directory -Path "mcp-server", "mcp-server/tools", "mcp-server/config"
+
+# Initialize git
+git init
+
+# Create virtual environment
+python -m venv venv
+./venv/Scripts/Activate.ps1
+
+# Install dependencies
+python -m pip install mcp pyyaml
+```
+
+### Development Commands
+```powershell
+# Start MCP server
+python -m mcp_server.server
+
+# Run tests
+python -m pytest tests/
+
+# Format code
+python -m black .
+
+# Type checking
+python -m mypy mcp_server/
+```
+
+### Debugging
+```powershell
+# Set environment variable for debugging
+$env:DEBUG = "true"
+python -m mcp_server.server
+
+# View logs
+Get-Content ./logs/mcp-server.log -Tail 50 -Wait
+
+# Find Python processes
+Get-Process python*
+```
+
+## File Operations
+
+### File Management
+```powershell
+# Create file
+New-Item -ItemType File -Path config.yaml
+
+# Create directory
+New-Item -ItemType Directory -Path logs
+
+# Copy files
+Copy-Item source.py destination.py
+
+# Move files
+Move-Item old-name.py new-name.py
+
+# Delete files (with confirmation)
+Remove-Item unwanted-file.py
+
+# Delete files (force, no confirmation)
+Remove-Item unwanted-file.py -Force
+```
+
+### File Content Operations
+```powershell
+# Read file content
+Get-Content config.yaml
+
+# Write to file
+"content" | Out-File -FilePath output.txt
+
+# Append to file
+"more content" | Add-Content -Path output.txt
+
+# Search in files
+Select-String -Pattern "TODO" -Path *.py
+```
+
+## Process Management
+
+### Process Control
+```powershell
+# Start background process
+Start-Process python -ArgumentList "server.py" -WindowStyle Hidden
+
+# Find running processes
+Get-Process python*
+
+# Stop process
+Stop-Process -Name python -Force
+
+# Start and wait for completion
+Start-Process python -ArgumentList "script.py" -Wait
+```
+
+### Job Management
+```powershell
+# Start background job
+$job = Start-Job -ScriptBlock { python server.py }
+
+# Check job status
+Get-Job
+
+# Get job output
+Receive-Job $job
+
+# Stop job
+Stop-Job $job
+Remove-Job $job
+```
+
+## Error Handling
+
+### Try-Catch Patterns
+```powershell
+try {
+    python -m pip install mcp
+    python server.py
+}
+catch {
+    Write-Error "Failed to start server: $_"
+    exit 1
+}
+```
+
+### Error Checking
+```powershell
+# Check last command status
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Command failed with exit code $LASTEXITCODE"
+}
+
+# Check if command exists
+if (Get-Command python -ErrorAction SilentlyContinue) {
+    python --version
+} else {
+    Write-Error "Python not found in PATH"
+}
+```
+
+## Common Pitfalls
+
+### Execution Policy Issues
+```powershell
+# Check current policy
+Get-ExecutionPolicy
+
+# Temporarily bypass for script
+powershell -ExecutionPolicy Bypass -File script.ps1
+
+# Set for current user (admin required)
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+### Path Issues
+```powershell
+# Add to PATH for current session
+$env:PATH += ";C:\new\path"
+
+# Escape spaces in paths
+& "C:\Program Files\Python\python.exe" script.py
+
+# Use quotes for paths with spaces
+Set-Location "C:\My Projects\MCP Server"
+```
+
+### Line Endings
+```powershell
+# Convert line endings if needed
+(Get-Content file.py -Raw) -replace "`r`n", "`n" | Set-Content file-unix.py
+```
+
+## Cursor Agent Specific
+
+### Auto-run Commands
+When Cursor's agent suggests commands, ensure they are PowerShell-compatible:
+```powershell
+# Good: PowerShell native
+Get-ChildItem -Recurse -Filter "*.py"
+
+# Bad: Unix command
+find . -name "*.py"
+```
+
+### Working Directory
+```powershell
+# Get current directory
+Get-Location
+$PWD
+
+# Change directory relative to project root
+Set-Location $PSScriptRoot
+```
+
+### Script Execution
+```powershell
+# Run PowerShell script
+./scripts/setup.ps1
+
+# Run with parameters
+./scripts/deploy.ps1 -Environment "production"
+```
+
+## Best Practices for Cursor Integration
+
+1. **Always use PowerShell syntax** when auto-running commands
+2. **Prefer PowerShell cmdlets** over external commands when possible
+3. **Handle paths carefully** - use forward slashes or Join-Path
+4. **Check for command existence** before using external tools
+5. **Use try-catch** for error handling in complex operations
+6. **Test commands** in PowerShell first before adding to automation
+7. **Escape special characters** appropriately for PowerShell
+
+
+Remember: Cursor's agent executes in PowerShell context. Always provide PowerShell-compatible commands and handle Windows-specific path and environment considerations.
