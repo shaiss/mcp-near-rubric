@@ -1,0 +1,12 @@
+{
+  "jsonrpc": "2.0",
+  "method": "call_tool",
+  "params": {
+    "name": "get_evaluation_framework",
+    "arguments": {
+      "category": "near_integration",
+      "project_type": "rust"
+    }
+  },
+  "id": 1
+} 

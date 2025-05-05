@@ -9,6 +9,7 @@ import sys
 import subprocess
 import os
 import tempfile
+import glob
 from typing import Dict, Any, List
 
 def call_tool(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
@@ -288,9 +289,117 @@ function signIn(wallet) {
     })
     print_json(response)
 
+def test_monorepo():
+    """Test with actual monorepo files."""
+    print("\nTesting with actual monorepo files...")
+    
+    # Get all the files in the monorepo
+    monorepo_path = "../repos_to_audit/monorepo"
+    all_files = []
+    
+    # Track file extensions for summary
+    extension_counts = {}
+    
+    # Find all files in the monorepo recursively
+    for root, dirs, files in os.walk(monorepo_path):
+        for file in files:
+            # Convert absolute path to relative path from monorepo root
+            full_path = os.path.join(root, file)
+            relative_path = os.path.relpath(full_path, start=monorepo_path)
+            all_files.append(relative_path)
+            
+            # Count file extensions
+            ext = os.path.splitext(file)[1].lower()
+            extension_counts[ext] = extension_counts.get(ext, 0) + 1
+    
+    # Print summary of file extensions
+    print("\nFile extension summary:")
+    for ext, count in sorted(extension_counts.items(), key=lambda x: x[1], reverse=True):
+        if count > 5:  # Only show extensions with more than 5 files
+            print(f"{ext}: {count} files")
+    
+    # Collect specific file types for NEAR analysis
+    near_relevant_files = []
+    
+    # Look for Rust, JavaScript, TypeScript files and common config files
+    for file in all_files:
+        if (file.endswith('.rs') or 
+            file.endswith('.js') or 
+            file.endswith('.ts') or 
+            file.endswith('.tsx') or 
+            file.endswith('.jsx') or
+            'contract' in file.lower() or
+            'near' in file.lower() or
+            file.endswith('Cargo.toml') or
+            file.endswith('package.json')):
+            near_relevant_files.append(file)
+    
+    # Limit to a reasonable number for testing
+    sample_files = near_relevant_files[:200]  # Limit to first 200 relevant files
+    print(f"\nFound {len(sample_files)} potentially relevant files out of {len(all_files)} total files")
+    
+    # Test file suggestions for NEAR integration
+    print(f"\nTesting file suggestions for monorepo...")
+    response = call_tool("get_file_suggestions", {
+        "category": "near_integration",
+        "available_files": sample_files
+    })
+    print_json(response)
+    
+    # Extract suggested files from response
+    suggested_files = response.get("result", {}).get("suggested_files", [])
+    
+    if suggested_files:
+        print(f"\nFound {len(suggested_files)} suggested files for analysis")
+        
+        # Read content of the first suggested file for demonstration
+        if len(suggested_files) > 0:
+            file_to_analyze = suggested_files[0]
+            full_path = os.path.join(monorepo_path, file_to_analyze)
+            
+            try:
+                with open(full_path, 'r', encoding='utf-8') as f:
+                    file_content = f.read()
+                
+                # Use analyze_pattern_matches to analyze the file
+                print(f"\nAnalyzing file: {file_to_analyze}")
+                response = call_tool("analyze_pattern_matches", {
+                    "category": "near_integration",
+                    "code_content": {file_to_analyze: file_content},
+                    "project_type": "mixed"
+                })
+                print_json(response)
+            except Exception as e:
+                print(f"Error reading file {full_path}: {str(e)}")
+    else:
+        print("No suggested files found for analysis")
+        
+        # Let's try a different approach - analyze a few Rust files directly
+        rust_files = [f for f in sample_files if f.endswith('.rs')]
+        if rust_files:
+            print(f"\nTrying direct analysis of {min(3, len(rust_files))} Rust files")
+            
+            for i, file_path in enumerate(rust_files[:3]):  # Analyze up to 3 Rust files
+                full_path = os.path.join(monorepo_path, file_path)
+                try:
+                    with open(full_path, 'r', encoding='utf-8') as f:
+                        file_content = f.read()
+                    
+                    print(f"\nAnalyzing file: {file_path}")
+                    response = call_tool("analyze_pattern_matches", {
+                        "category": "near_integration",
+                        "code_content": {file_path: file_content},
+                        "project_type": "rust"
+                    })
+                    print_json(response)
+                except Exception as e:
+                    print(f"Error reading file {full_path}: {str(e)}")
+
 if __name__ == "__main__":
-    test_get_evaluation_framework()
-    test_get_file_suggestions()
-    test_analyze_code_context()
-    test_pattern_matching_with_complex_extensions()
-    test_analyze_pattern_matches() 
+    # Uncomment the tests you want to run
+    #test_get_evaluation_framework()
+    #test_get_file_suggestions()
+    #test_analyze_code_context()
+    #test_pattern_matching_with_complex_extensions()
+    #test_analyze_pattern_matches()
+    test_monorepo() 

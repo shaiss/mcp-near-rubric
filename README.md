@@ -69,8 +69,11 @@ No need to manually construct JSON-RPC requests or understand the underlying API
 
 ## 🔧 Testing the Server
 
-You can test if the server is functioning correctly with:
+You can test the MCP server using several approaches, from simple direct JSON-RPC requests to comprehensive programmatic testing.
 
+For detailed instructions on testing options, see our [Testing Guide](docs/testing_mcp_server.md).
+
+Quick test with the included test client:
 ```bash
 python test_client.py
 ```
@@ -102,6 +105,7 @@ Pattern configurations are stored in YAML files in the `config/` directory. You 
 ## 📚 Documentation
 
 - [NEAR Rubric: Category Breakdown](docs/near_rubric.md): Friendly, human-readable overview of the rubric categories and scoring guidelines. 
+- [Testing Guide](docs/testing_mcp_server.md): Step-by-step workshop for testing the MCP server with your NEAR projects.
 
 ## 🔄 Integration with Cursor
 

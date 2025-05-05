@@ -1,3 +1,7 @@
+"""
+Categories package for NEAR Rubric MCP
+"""
+
 # NEAR Rubric MCP Categories Package
 """Category implementations for NEAR Rubric evaluation."""
 
