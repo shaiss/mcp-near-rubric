@@ -1,5 +1,5 @@
 from typing import Dict, List, Any, Optional
-from .base import BaseCategory
+from categories.base import BaseCategory
 
 class TeamActivityCategory(BaseCategory):
     """Category evaluating team activity and project maturity of NEAR projects."""

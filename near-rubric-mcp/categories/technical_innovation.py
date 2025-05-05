@@ -1,5 +1,5 @@
 from typing import Dict, List, Any, Optional
-from .base import BaseCategory
+from categories.base import BaseCategory
 
 class TechnicalInnovationCategory(BaseCategory):
     """Category evaluating technical innovation and uniqueness of NEAR projects."""

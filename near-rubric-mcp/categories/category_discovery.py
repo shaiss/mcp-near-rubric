@@ -11,7 +11,7 @@ import importlib.util
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Type, Tuple
 
-from .base import BaseCategory
+from categories.base import BaseCategory
 
 logger = logging.getLogger("category_discovery")
 
@@ -76,6 +76,17 @@ def discover_prompt_templates() -> Dict[str, str]:
     logger.info("Discovering prompt templates...")
     templates = {}
     
+    # Define mapping for template files to standardized category keys
+    template_category_mapping = {
+        "code_quality": "code_quality_&_documentation",
+        "ecosystem_fit": "grant_impact_&_ecosystem_fit",
+        "near_integration": "near_protocol_integration",
+        "team_activity": "team_activity_&_project_maturity",
+        "technical_innovation": "technical_innovation/uniqueness",
+        "offchain_quality": "offchain_quality",
+        "onchain_quality": "onchain_quality"
+    }
+    
     # Get the prompts directory
     base_dir = Path(__file__).parent.parent
     prompts_dir = base_dir / "resources" / "prompts"
@@ -86,8 +97,10 @@ def discover_prompt_templates() -> Dict[str, str]:
     
     # Find all .txt files in the directory
     for file_path in prompts_dir.glob("*.txt"):
-        category_key = file_path.stem
-        templates[category_key] = str(file_path)
+        template_key = file_path.stem
+        # Use the mapping if available to get the standardized category key
+        category_key = template_category_mapping.get(template_key, template_key)
+        templates[template_key] = str(file_path)
         logger.debug(f"Found template for {category_key}: {file_path}")
     
     logger.info(f"Discovered {len(templates)} prompt templates")
@@ -115,23 +128,45 @@ def validate_category_config(
     orphaned_templates = []
     warnings = []
     
+    # Create mapping dictionaries for easier lookup
+    category_template_mapping = {
+        "code_quality_&_documentation": "code_quality",
+        "grant_impact_&_ecosystem_fit": "ecosystem_fit",
+        "near_protocol_integration": "near_integration",
+        "team_activity_&_project_maturity": "team_activity",
+        "technical_innovation/uniqueness": "technical_innovation",
+        "offchain_quality": "offchain_quality",
+        "onchain_quality": "onchain_quality"
+    }
+    
     # Check for missing templates
     for category_key in discovered_categories:
         # Normalize the key for comparison
         norm_key = category_key.lower().replace(" ", "_")
-        if norm_key not in prompt_templates:
+        
+        # Use the mapping if available
+        template_key = category_template_mapping.get(norm_key, norm_key)
+        
+        if template_key not in prompt_templates:
             missing_templates.append(category_key)
             warnings.append(f"Category '{category_key}' is missing a prompt template")
     
     # Check for orphaned templates
     for template_key in prompt_templates:
-        # Try to find a matching category (exact or suffix)
+        # Try to find a matching category using the reverse mapping
         found = False
-        for category_key in discovered_categories:
-            norm_cat_key = category_key.lower().replace(" ", "_")
-            if template_key == norm_cat_key or norm_cat_key.endswith(template_key):
+        for cat_key, temp_key in category_template_mapping.items():
+            if temp_key == template_key:
                 found = True
                 break
+        
+        # If not found using the mapping, try direct matching
+        if not found:
+            for category_key in discovered_categories:
+                norm_cat_key = category_key.lower().replace(" ", "_")
+                if template_key == norm_cat_key or norm_cat_key.endswith(template_key):
+                    found = True
+                    break
         
         if not found:
             orphaned_templates.append(template_key)
@@ -149,8 +184,11 @@ def synchronize_categories() -> Dict[str, Any]:
     Returns:
         Dict containing the synchronization report
     """
-    # Discover categories and templates
-    categories = discover_category_classes()
+    # Use the previously discovered categories instead of discovering again
+    from categories import CATEGORIES
+    categories = {key: val.__class__ for key, val in CATEGORIES.items()}
+    
+    # Discover templates
     templates = discover_prompt_templates()
     
     # Validate configuration

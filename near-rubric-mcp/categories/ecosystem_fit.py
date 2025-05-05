@@ -1,5 +1,5 @@
 from typing import Dict, List, Any, Optional
-from .base import BaseCategory
+from categories.base import BaseCategory
 
 class EcosystemFitCategory(BaseCategory):
     """Category evaluating ecosystem fit and grant impact of NEAR projects."""

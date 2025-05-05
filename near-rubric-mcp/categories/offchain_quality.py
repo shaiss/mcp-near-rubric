@@ -1,5 +1,5 @@
 from typing import Dict, List, Any, Optional
-from .base import BaseCategory
+from categories.base import BaseCategory
 
 class OffchainQualityCategory(BaseCategory):
     """Category evaluating offchain quality of NEAR projects."""

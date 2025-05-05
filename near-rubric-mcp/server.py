@@ -8,11 +8,12 @@ from pathlib import Path
 
 # Set up logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(Path(__file__).parent / "mcp_server.log")
+        logging.FileHandler(Path(__file__).parent / "mcp_server.log"),
+        logging.FileHandler(Path(__file__).parent / "debug.log")
     ]
 )
 
@@ -345,20 +346,27 @@ class RubricMCPServer:
 def main():
     """Start the NEAR Rubric MCP server."""
     logger.info("Starting NEAR Rubric MCP server")
-    server = RubricMCPServer()
     
-    try:
-        # Get an event loop
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        # Create a new event loop if one doesn't exist
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+    # Debug the categories
+    from categories import CATEGORIES
+    cat_keys = list(CATEGORIES.keys())
+    logger.info(f"DEBUG: Raw category keys: {cat_keys}")
+    logger.info(f"DEBUG: Raw category count: {len(cat_keys)}")
+    
+    # Debug initialized server categories
+    server = RubricMCPServer()
+    server_cat_keys = list(server.categories.keys())
+    logger.info(f"DEBUG: Server category keys: {server_cat_keys}")
+    logger.info(f"DEBUG: Server category count: {len(server_cat_keys)}")
+    
+    # Use the newer asyncio API to avoid deprecation warnings
+    async def run_server():
+        await server.run_stdio()
     
     # Run the server using stdio
     try:
         logger.info("Running server using stdio")
-        loop.run_until_complete(server.run_stdio())
+        asyncio.run(run_server())
     except KeyboardInterrupt:
         logger.info("Received keyboard interrupt, shutting down")
     except Exception as e:

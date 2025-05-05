@@ -1,5 +1,5 @@
 from typing import Dict, List, Any, Optional
-from .base import BaseCategory
+from categories.base import BaseCategory
 
 class CodeQualityCategory(BaseCategory):
     """Category evaluating code quality and documentation of NEAR projects."""
